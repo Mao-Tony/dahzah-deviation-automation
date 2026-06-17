@@ -11,6 +11,8 @@
 - **模板管理**：支持自定义报告模板
 - **多图片上传**：支持偏差现场图片上传
 - **结果预览**：所见即所得的预览视图
+- **AI配置管理**：统一管理AI服务配置（API密钥、模型参数等）
+- **AI交互日志**：记录所有AI调用历史，支持统计分析和日志清理
 
 ## 模块结构
 
@@ -37,12 +39,14 @@ dahzah-deviation-automation/
 │       │   └── deviation.ts                   # Server Actions
 │       ├── app/
 │       │   └── quality/
-│       │       └── deviation-automation/
-│       │           ├── create/page.tsx        # 新建报告
-│       │           ├── history/page.tsx      # 历史查询
-│       │           ├── preview/[id]/page.tsx # 预览视图
-│       │           ├── sop/page.tsx          # SOP规则管理
-│       │           └── templates/page.tsx    # 模板管理
+│       │       ├── deviation-automation/
+│       │       │   ├── create/page.tsx        # 新建报告
+│       │       │   ├── history/page.tsx      # 历史查询
+│       │       │   ├── preview/[id]/page.tsx # 预览视图
+│       │       │   ├── sop/page.tsx          # SOP规则管理
+│       │       │   └── templates/page.tsx   # 模板管理
+│       │       ├── ai-config/page.tsx        # AI配置管理
+│       │       └── ai-log/page.tsx           # AI交互日志
 │       └── types/
 │           └── deviation.ts                   # 类型定义
 └── README.md
@@ -156,6 +160,26 @@ MINIMAX_MODEL=MiniMax-VL-01
 | POST | /quality/deviation-automation/templates/{id}/activate | 启用模板 |
 | GET | /quality/deviation-automation/templates/{id}/download | 下载模板文件 |
 
+### AI 配置 API
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | /api/v1/ai-config/ | 获取AI配置 |
+| POST | /api/v1/ai-config/ | 更新AI配置 |
+| GET | /api/v1/ai-config/status | 获取AI服务状态 |
+| POST | /api/v1/ai-config/test | 测试AI连接 |
+
+### AI 日志 API
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | /api/v1/ai-logs/ | 获取AI日志列表 |
+| GET | /api/v1/ai-logs/{id} | 获取日志详情 |
+| POST | /api/v1/ai-logs/ | 创建日志记录 |
+| GET | /api/v1/ai-logs/stats/summary | 获取AI使用统计 |
+| DELETE | /api/v1/ai-logs/{id} | 删除日志记录 |
+| DELETE | /api/v1/ai-logs/cleanup | 清理旧日志 |
+
 ---
 
 ## 数据库表结构
@@ -203,6 +227,36 @@ MINIMAX_MODEL=MiniMax-VL-01
 | is_active | INTEGER | 是否启用（0否1是） |
 | create_time | TIMESTAMP | 创建时间 |
 | update_time | TIMESTAMP | 更新时间 |
+
+### qms_ai_config (AI配置表)
+
+| 字段名 | 类型 | 说明 |
+|--------|------|------|
+| id | SERIAL | 主键 |
+| key | VARCHAR(100) | 配置键名 |
+| value | TEXT | 配置值(JSON格式) |
+| description | TEXT | 配置描述 |
+| created_at | TIMESTAMP | 创建时间 |
+| updated_at | TIMESTAMP | 更新时间 |
+
+### qms_ai_log (AI日志表)
+
+| 字段名 | 类型 | 说明 |
+|--------|------|------|
+| id | SERIAL | 主键 |
+| user_id | VARCHAR(100) | 用户ID |
+| session_id | VARCHAR(100) | 会话ID |
+| module | VARCHAR(50) | 模块名称 |
+| action | VARCHAR(50) | 操作类型 |
+| prompt | TEXT | 发送的提示词 |
+| response | TEXT | AI响应内容 |
+| model | VARCHAR(100) | 使用的模型 |
+| tokens_used | INTEGER | 使用的token数 |
+| status | VARCHAR(20) | 状态(success/failed) |
+| error_message | TEXT | 错误信息 |
+| request_params | JSONB | 请求参数 |
+| response_time | INTEGER | 响应时间(毫秒) |
+| created_at | TIMESTAMP | 创建时间 |
 
 ---
 
